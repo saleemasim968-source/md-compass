@@ -1,58 +1,100 @@
 # Content Guidelines — MD Compass
 
-This document has the **highest priority** (see `AGENTS.md`).
+Implements `docs/PRD.md` §13 and Appendix C. If this file and the PRD disagree,
+the PRD wins. After the PRD, this document has the highest priority (see
+`AGENTS.md`).
 
 ## 1. Who may write medical content
 
-- **AI agents and developers must never write medical content.** They insert
-  `TODO(content): <what is needed> — source + clinical review required`.
-- Medical content is adapted from approved sources by a content author, then
-  checked and signed off by the clinical reviewer.
-- `TODO(decision)`: named clinical reviewer and their qualifications.
+- **AI agents and developers never write medical content**: no facts, stages,
+  ages, statistics, sources, community entries or search terms, and nothing
+  from general knowledge. They insert
+  `TODO(content): <what is needed> — source + clinical review required`
+  and list each one in their report.
+- A content author writes from the source register, in original words, and a
+  clinical reviewer signs it off.
+- `TODO(decision)`: who performs the clinical review, a neuromuscular clinician
+  or an LGMD patient organisation (PRD §19).
 
-## 2. Approved sources
+## 2. Sources
 
-Only trusted public health sources, for example national health services,
-government public-health agencies and international health organisations.
-`TODO(decision)`: the exact approved source list.
+- Only sources in the source register (`content/sources.json`, started from PRD
+  Appendix C): guidelines and care recommendations, peer-reviewed research,
+  reference databases, health agencies and established patient organisations.
+- Forums, social media, product pages and AI output are **not** sources.
+- New sources are added by a person, never by an AI (R41).
+- Each source is used with its date. Retired or superseded documents are marked
+  historical and are not used for current statements.
+- Statements that a treatment is approved rest only on the regulators (PRD
+  Appendix C, group 7) and are rechecked at every review.
+- Summarise in original words and link. No copied passages (R11).
 
-Every page lists its sources (title, publisher, link, date accessed). Do not
-copy text verbatim unless the source's licence allows it; adapt and cite.
+### Two-source rule (R42)
 
-## 3. Condition page structure
+- A general medical statement is supported by at least two independent sources
+  where two exist.
+- Where sources disagree, show the range and name both. Never pick one figure
+  (E27).
 
-Every condition page uses the same sections in this order. The wording of
-each section is `TODO(content)` until supplied by the content team.
+## 3. General and subtype statements
 
-1. Summary (2–3 sentences)
-2. What it is
-3. Common signs
-4. When to get help, which uses the region config for emergency wording
-5. How it is usually diagnosed
-6. How it is usually treated or managed
-7. Living with it
-8. Sources
-9. Review information (reviewed by, reviewed on, next review due)
-
-`TODO(decision)`: confirm this section list.
+- The first version describes the general LGMD pattern. Label general
+  statements as general.
+- A statement about one subtype names that subtype and cites a source for it.
+- Subtype names follow the current R and D naming. Older names are mapped only
+  through the reviewed table in `content/subtypes.json` (E23).
 
 ## 4. Writing style
 
-- Plain English. `TODO(decision)`: readability target (for example, a reading
-  age of around 9–11).
-- Short sentences, active voice, and "you" when speaking to the reader.
-- Explain any medical term the first time it appears.
-- Calm, non-alarming and non-judgemental tone.
-- No personal advice, no diagnosis, no dosing.
-- Use region config placeholders, never hard-coded emergency numbers.
+- Plain language at a reading age of about 12 to 14. Explain medical terms where
+  they appear.
+- Use "typically" and "varies from person to person". No predictions about an
+  individual.
+- Pair every "what changes" with "what helps".
+- No treatment recommendations, dosing, exercise prescriptions, brand names or
+  cure claims.
+- Respectful language: "people with LGMD", "uses a wheelchair". Never
+  "sufferers" or "wheelchair-bound".
+- Stages are defined by function, never by age. Age of onset appears only as
+  sourced context; no life-expectancy figures (R22).
 
-## 5. Mandatory safety notice
+## 5. Templates
 
-Every condition page shows the safety notice (PRD F4). Its exact wording is
-`TODO(content)` and must be approved by the clinical reviewer.
+### Daily Living guide (R10–R13)
 
-## 6. Review cycle
+Front-matter as in PRD §9.2. Every guide has, in this order: summary,
+step-by-step tips, equipment that may help, who to ask, sources, last-reviewed
+date. It can be read in under three minutes and printed. Categories are listed
+in PRD §7.2. A guide without a source fails the production build (E12).
 
-- Every published page has `reviewedOn` and `nextReviewDue`.
-- `TODO(decision)`: review interval (for example, every 12 months).
-- Pages past `nextReviewDue` are flagged in CI.
+### Timeline stage (R14, R29, R30)
+
+Three panels: what typically changes, what helps at this stage, related guides.
+Each stage says that paths differ. A sourced note about checks with the care
+team appears at every stage; its wording comes from sources. The five stage
+names are a proposal until the clinical reviewer confirms them (PRD §7.3).
+
+### Community entry (R33–R35)
+
+Front-matter as in PRD §9.5, with a "last checked" date. Listing criteria are
+published on the page. `TODO(decision)`: the listing criteria and who checks
+entries (PRD §19).
+
+## 6. Reviews and corrections
+
+- Until clinical review, every page shows the banner
+  "Draft content, not yet clinically reviewed" (PRD §13).
+- A guide whose last review is more than 12 months old shows a "Review due"
+  note (E11).
+- The source register is reviewed every three months; a source not checked for
+  more than three months is flagged on the Sources page and in the build report
+  (R41, E28).
+- Community links are checked monthly; a broken link hides the entry until a
+  person fixes it (E24).
+- The About page has an error-report link; corrections are dated.
+
+## 7. Safety wording owned by people
+
+The footer disclaimer (R27), the timeline content note (R21), the trial line in
+R8 and any heart or breathing note (R30) are fixed wording supplied by the
+content team and approved by the clinical reviewer.

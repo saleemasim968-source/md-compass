@@ -1,108 +1,169 @@
 # Architecture — MD Compass
 
+Implements `docs/PRD.md` §10–§11 and §14. If this file and the PRD disagree,
+the PRD wins.
+
 ## 1. Shape of the system
 
-A content website with no database and no user accounts. Condition pages are
-files in the repository, validated at build time and rendered as static pages.
+Two kinds of data are kept apart on purpose (PRD §11):
 
-```
-content/conditions/*.mdx  ──validate (schema)──▶  Next.js build  ──▶  static HTML
-                                                     │
-                                         search index (built at build time)
-```
-
-## 2. Stack
-
-| Concern | Choice | Why |
+| Kind | Where it lives | Why |
 | --- | --- | --- |
-| Framework | Next.js (App Router) + React | Builds fast static pages and has good defaults for accessibility and performance |
-| Language | TypeScript, `strict` mode | Catches mistakes before the code runs |
-| Styling | Tailwind CSS | Consistent spacing, colour and type scales; easy to keep contrast rules |
-| Content | MDX files + YAML front-matter (`yaml`) checked by a Zod schema, compiled with `@mdx-js/mdx` | Reviewers can read content in plain files; the schema stops pages missing sources or review dates |
-| Unit tests | Vitest + Testing Library | Fast tests for components and content validation |
-| End-to-end + a11y tests | Playwright + axe-core | Tests real pages in a browser and checks accessibility automatically |
-| Lint / format | ESLint (incl. jsx-a11y) + Prettier | Consistent code and catches common accessibility mistakes |
-| Hosting | `TODO(decision)` (Vercel suggested) | |
-
-Package versions: always the latest stable at install time; record them in
-`package.json` (exact) and mention them in the phase report.
-
-## 3. Folder layout (target)
+| Curated content: guides, timeline stages, source register, search-term list, subtype names, community entries | Files in `content/`, validated at build time | Written and reviewed by people; every change is visible in git |
+| Research feed: trials and publications | Supabase (Postgres) | Fetched by machine daily; needs search and filters |
 
 ```
-app/                    routes (App Router)
-  layout.tsx            site shell: skip link, header, footer
-  page.tsx              home
-  conditions/           index + [slug] pages
-  about/                how content is sourced and reviewed
-components/             UI components
-content/conditions/     one MDX file per condition (content team owns)
-lib/content/            schema, section list, loader and validation
-lib/config.ts           region config (emergency wording etc.)
-tests/                  unit tests
-e2e/                    Playwright + axe tests
+content/**  ──validate (Zod)──▶  Next.js build ──▶ pages (text renders on the server first)
+                                      ▲
+Vercel Cron ──▶ /api/cron/ingest ──▶ source adapters ──validate──▶ Supabase ──read-only──┘
 ```
 
-## 4. Condition files
+## 2. Stack (fixed by PRD §10; no changes without the owner's approval)
 
-One file per condition: `content/conditions/<slug>.mdx`. The file name must
-match the `slug`.
+| Layer | Choice | Why |
+| --- | --- | --- |
+| Runtime | Node.js (current LTS, see `.nvmrc`) | Required by Next.js; one language for the whole project |
+| Framework | Next.js (App Router), React, TypeScript strict | Pages render on the server, so text arrives first |
+| Styling | Tailwind CSS with design tokens | Themes and text sizes switch through tokens |
+| Database | Supabase (Postgres) | Free tier; built-in text search |
+| Curated content | MDX and JSON files, YAML front-matter (`yaml`), compiled with `@mdx-js/mdx` | Every content change is visible and reviewable |
+| 3D | React Three Fiber and drei | Standard way to run 3D inside React (Phase 3b only) |
+| Validation | Zod | Rejects malformed content and API data before it is used or saved |
+| Tests | Vitest, Testing Library, Playwright with axe | Unit, browser and accessibility checks |
+| Hosting | Vercel with Vercel Cron | Free tier; daily scheduled update |
 
-### Front-matter (between the `---` lines at the top)
+Packages are installed at their latest stable version, pinned exactly in
+`package.json`, and reported with their licence (PRD §10.1, §14).
 
-- `title`, `slug`, `summary`
-- `synonyms` (list, used by search)
-- `sources` — at least one: `{ title, publisher, url (https), accessed }`
-- `reviewedBy`, `reviewedOn`, `nextReviewDue` (dates as `YYYY-MM-DD`;
-  `nextReviewDue` must be after `reviewedOn`)
-- `status` — `draft` | `published`
+## 3. Folder layout (target; folders appear in the phase that needs them)
 
-Drafts may leave sources and review fields empty. Published pages may not.
+```
+app/
+  layout.tsx              shell: skip link, header, nav, draft banner, footer disclaimer   (0)
+  page.tsx                home                                                             (0, 4)
+  settings/               accessibility settings                                           (0)
+  daily-living/           guide list with filters; [slug]/ guide page                      (1)
+  research/               list, filters, search; [id]/ detail page                         (2)
+  sources/                public source register page                                      (2)
+  timeline/               ?stage=1..5; text panels first, 3D layer optional                (3a–3c)
+  community/              curated directory                                                (4)
+  about/                  what the site is, sourcing, review, error reports                (4)
+  api/cron/ingest/        protected daily ingestion endpoint                               (2)
+components/               UI components
+content/
+  guides/*.mdx            Daily Living guides                                              (1)
+  sources.json            source register (Appendix C of the PRD, maintained by a person)  (1)
+  search-terms.json       reviewed research search terms (R43)                             (2)
+  subtypes.json           current subtype names + reviewed mapping of older names (E23)    (2)
+  stages/*.mdx            timeline stages                                                  (3a)
+  community/*.mdx         community entries                                                (4)
+lib/
+  content/files.ts        generic content loader (front-matter, Zod, aggregated errors)
+  i18n/                   translation files (en first) and lookup helper                    (0)
+  settings/               reading and applying device-only settings                        (0)
+  research/               record schema, adapters/, ingest run, de-duplication             (2)
+  db/                     Supabase clients (public read-only; server-only writer)          (2)
+public/models/            3D model files, with their licence recorded                      (3b–3c)
+tests/                    unit tests (Vitest)
+e2e/                      browser and accessibility tests (Playwright + axe)
+```
 
-### Body
+## 4. Curated content files
 
-The body must contain exactly these `##` headings, in this order (defined in
-`lib/content/sections.ts`, from `CONTENT_GUIDELINES.md` §3):
+All content files are loaded by `lib/content/files.ts`, which each content type
+calls with its own Zod schema:
 
-1. What it is
-2. Common signs
-3. When to get help — must include `<EmergencyHelp />`, which shows the region's
-   emergency wording from `lib/config.ts`
-4. How it is usually diagnosed
-5. How it is usually treated or managed
-6. Living with it
+- The file name (lowercase words joined by hyphens) becomes the `slug`.
+- Front-matter must be valid YAML and match the type's schema.
+- No `import`/`export` lines and no `#` headings in the body.
+- Every problem in every file is collected and fails `next build` with a
+  plain-language list.
+- Drafts are shown in `npm run dev` and in the end-to-end test build
+  (`MDC_INCLUDE_DRAFTS=true`), never in production.
 
-The template adds the title, summary, safety notice, Sources and Review
-information sections itself. No `#` headings and no `import`/`export` lines are
-allowed in content files.
+Each content item carries `condition: lgmd` and an optional `subtype`. The guide
+front-matter follows PRD §9.2 and community entries follow PRD §9.5. Guides
+reference sources by id (`sourceIds`) from `content/sources.json`, so a source is
+described once. The exact schemas are written in the phase that builds each
+type.
 
-### Validation
+## 5. Research ingestion (Phase 2)
 
-`lib/content/loader.ts` checks every file, drafts included. Any problem fails
-`next build` with a list of every problem in every file. A `published` page that
-still contains `TODO(content)` also fails.
+- **Trigger:** Vercel Cron calls `/api/cron/ingest` at least once a day (R1).
+  The endpoint rejects any request without the `CRON_SECRET` bearer token.
+- **Adapters:** one per source, chosen from the source register. Adding a source
+  adds an adapter and a register entry; it never changes the database schema.
 
-### Drafts
+```ts
+interface SourceAdapter {
+  /** Matches the source's id in content/sources.json. */
+  id: string;
+  /** Fetches raw records changed since the last successful run, using the reviewed term list. */
+  fetch(options: { since: Date | null; terms: string[]; signal: AbortSignal }): Promise<unknown[]>;
+  /** Validates one raw record with Zod and converts it to the common format, or returns null (E3). */
+  normalize(raw: unknown): ResearchRecord | null;
+}
+```
 
-Drafts are shown in `npm run dev` with a "Draft" banner and a `noindex` tag.
-They are never built in production, except in the end-to-end test build, which
-sets `MDC_INCLUDE_DRAFTS=true`.
+- **Run rules:** each source runs independently. A timeout, error or rate limit
+  skips that source and is logged (E1, E2); other sources continue; existing
+  data is never deleted (R6). Records are upserted, so a changed trial status
+  updates the record instead of duplicating it (E6).
+- **De-duplication:** by source and external id (R1). The same item from
+  several sources becomes one record with every identifier listed (R39, E4).
+  Trials in two registries are merged only where the registries cross-reference
+  each other, never on title alone (E26).
+- **Subtype:** set only when the record states it, or through the reviewed
+  mapping in `content/subtypes.json`; otherwise "Subtype not stated" (R28, E23).
+- API endpoints, parameters and rate limits are taken from each API's current
+  documentation when the adapter is written (PRD §10.1).
 
-## 5. Region configuration
+## 6. Database schema (Phase 2, draft)
 
-Emergency and service wording lives in one config module (`lib/config.ts`),
-never inside content files. The region is chosen at build time with the
-`MDC_REGION` environment variable (default: `default`); an unknown region fails
-the build. `TODO(decision)`: default region behaviour (see PRD §7).
+The common record format is PRD §9.1. Proposed tables:
 
-## 6. Privacy
+| Table | Columns |
+| --- | --- |
+| `research_items` | `id` (uuid), `kind` (`trial` \| `publication`), `condition` (default `lgmd`), `subtype` (nullable), `title`, `abstract` (nullable), `url`, `published_at`, `status` (nullable), `phase` (nullable), `countries` (text[]), `first_seen_at`, `updated_at`, plus a full-text search column over title and abstract (R3) |
+| `research_identifiers` | `item_id` → `research_items`, `source`, `external_id`, `url`; unique on (`source`, `external_id`) |
+| `ingest_runs` | `id`, `source`, `started_at`, `finished_at`, `outcome` (`ok` \| `failed` \| `rate_limited`), counts fetched / saved / rejected, `error` |
 
-- No accounts, cookies for tracking, or third-party trackers.
-- No forms that collect health information.
-- Search runs on the user's device; queries are not sent to a server.
-- `TODO(decision)`: whether to add privacy-preserving, cookieless analytics.
+Access (PRD §14): public visitors can only read `research_items`,
+`research_identifiers` and the time of the last successful run (R5). Writing uses
+a server-only key. `TODO(decision)`: confirm this schema when Phase 2 starts.
 
-## 7. Quality gate
+## 7. Timeline (Phase 3)
+
+- The stage number in the web address (`/timeline?stage=3`) is the single
+  source of truth (R17). Scroll, buttons, chips and arrow keys all change that
+  one value (R16). An invalid value shows stage 1 (E13).
+- Text panels are always rendered on the server (R20, E18). The 3D scene is an
+  optional layer loaded afterwards, only on this page, never focusable, and
+  replaced by 2D illustrations when 3D is off, unsupported or slow (R19,
+  E14, E15). Total 3D download under 3 MB.
+
+## 8. Settings and interface text (Phase 0)
+
+- Settings (R24) are stored in the browser's local storage only and applied as
+  attributes on `<html>` before the page paints, to avoid a flash. With no
+  saved value, the operating system's preference applies (R25); once the user
+  sets a value, it wins (E20). If storage is blocked, defaults apply for the
+  visit without errors (E19).
+- All interface text lives in the translation file (`lib/i18n/`), English first,
+  so German can be added later without touching components.
+
+## 9. Privacy and security (PRD §14)
+
+- No accounts, no personal or health data, no tracking cookies, no third-party
+  scripts or embeds. Any analytics must be cookieless and approved first.
+- Search and filters for curated content run on the visitor's device.
+- Patient registries are only linked to, never imported.
+- Secrets (`CRON_SECRET`, the Supabase server key) live only in environment
+  variables, never in code or AI prompts; `.env.example` lists names only.
+
+## 10. Quality gate
 
 `npm run check` = typecheck + lint + format check + unit tests + build. CI runs
-it plus the Playwright/axe suite on every push.
+it plus the Playwright/axe suite on every push. Each PRD §8 edge case gets a
+test; adapters are tested against saved sample responses, including a malformed
+one (PRD §16.1).
