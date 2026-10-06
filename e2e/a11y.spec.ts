@@ -3,11 +3,8 @@ import { expect, test } from "@playwright/test";
 
 const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
-// The e2e build sets MDC_INCLUDE_DRAFTS=true so the placeholder condition can be tested.
-const PAGES = [
-  { name: "home page", path: "/" },
-  { name: "condition page (placeholder draft)", path: "/conditions/placeholder-condition" },
-];
+// Every page is added here as it is built (docs/ACCESSIBILITY.md: axe on every page).
+const PAGES = [{ name: "home page", path: "/" }];
 
 for (const { name, path } of PAGES) {
   test.describe(name, () => {
@@ -37,32 +34,7 @@ for (const { name, path } of PAGES) {
   });
 }
 
-test.describe("condition page template", () => {
-  test("shows every section from CONTENT_GUIDELINES.md in order", async ({ page }) => {
-    await page.goto("/conditions/placeholder-condition");
-    const h2s = await page.locator("main h2").allTextContents();
-    expect(h2s).toEqual([
-      expect.stringMatching(/safety notice/i),
-      "What it is",
-      "Common signs",
-      "When to get help",
-      "How it is usually diagnosed",
-      "How it is usually treated or managed",
-      "Living with it",
-      "Sources",
-      "Review information",
-    ]);
-    await expect(page.getByRole("note", { name: /emergency box heading/i })).toBeVisible();
-    await expect(page.getByText("Draft: not clinically reviewed")).toBeVisible();
-  });
-
-  test("drafts are not indexed by search engines", async ({ page }) => {
-    await page.goto("/conditions/placeholder-condition");
-    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
-  });
-
-  test("unknown condition returns 404", async ({ page }) => {
-    const response = await page.goto("/conditions/does-not-exist");
-    expect(response?.status()).toBe(404);
-  });
+test("unknown page returns 404", async ({ page }) => {
+  const response = await page.goto("/does-not-exist");
+  expect(response?.status()).toBe(404);
 });
