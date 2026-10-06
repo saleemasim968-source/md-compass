@@ -1,0 +1,25 @@
+# Flags published condition pages that are past their next review date
+# (docs/CONTENT_GUIDELINES.md §6). Dates pass without any code changing, so this
+# also runs every day, not only on pushes.
+name: Review dates
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 6 * * *" # every day at 06:00 UTC
+  workflow_dispatch: # allows a manual run from the GitHub Actions tab
+
+jobs:
+  review-dates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Check review dates
+        run: npm run check:reviews

@@ -22,6 +22,7 @@ content/conditions/*.mdx  ──validate (schema)──▶  Next.js build  ─�
 | Unit tests | Vitest + Testing Library | Fast tests for components and content validation |
 | End-to-end + a11y tests | Playwright + axe-core | Tests real pages in a browser and checks accessibility automatically |
 | Lint / format | ESLint (incl. jsx-a11y) + Prettier | Consistent code and catches common accessibility mistakes |
+| Scripts | `tsx` | Runs TypeScript scripts (e.g. the review-date check) with the same content loader as the site |
 | Hosting | `TODO(decision)` (Vercel suggested) | |
 
 Package versions: always the latest stable at install time; record them in
@@ -106,3 +107,11 @@ the build. `TODO(decision)`: default region behaviour (see PRD §7).
 
 `npm run check` = typecheck + lint + format check + unit tests + build. CI runs
 it plus the Playwright/axe suite on every push.
+
+`npm run check:reviews` fails when a published page is past its `nextReviewDue`
+date (a page is still in date on its due day; drafts are not checked). It runs
+in its own CI workflow (`.github/workflows/review-dates.yml`) on every push and
+pull request, and daily on a schedule, because dates pass without any code
+changing. It is kept out of `npm run check` so an overdue page does not block
+unrelated fixes. `TODO(decision)`: whether to also warn when a review is due
+soon, and how many days ahead.
