@@ -17,7 +17,7 @@ export default defineConfig({
     { name: "mobile-chromium", use: { ...devices["Pixel 7"] } },
   ],
   // Tests run against a production build, which is what users get. Drafts are included
-  // (MDC_INCLUDE_DRAFTS) so the placeholder condition page can be tested; a fresh build is
+  // (MDC_INCLUDE_DRAFTS) so draft content can be tested; a fresh build is
   // always made so a stale server without drafts is never reused.
   webServer: {
     command: `npm run build && npm run start -- --port ${PORT}`,

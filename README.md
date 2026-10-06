@@ -1,17 +1,24 @@
 # MD Compass
 
-MD Compass is a website that explains medical conditions in plain language for
-patients and the public. Each explanation is adapted from trusted public health
-sources, cites them, and is clinically reviewed before publishing. It is
-information, not diagnosis or personal advice. It collects no personal data
-and aims to meet WCAG 2.2 AA.
+MD Compass is a free, accessible web app for people living with limb-girdle
+muscular dystrophy (LGMD) and the people who support them. It brings together a
+plain-language Research hub, practical Daily Living guides, an interactive
+Timeline of stages of function, and a Community directory. Every medical
+statement is sourced and clinically reviewed. It is information, not diagnosis
+or personal advice, and it collects no personal data.
 
 ## Documents
 
+- [docs/PRD.md](docs/PRD.md): the single source of truth (what we build, for whom, edge cases, constraints)
 - [AGENTS.md](AGENTS.md): working rules for humans and AI agents, and which document wins in a conflict
-- [docs/PRD.md](docs/PRD.md): what we are building, for whom, and what is out of scope
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): tech stack, folder layout, content schema and privacy
+- [docs/CONTENT_GUIDELINES.md](docs/CONTENT_GUIDELINES.md): who writes medical content, sources, templates and review
 - [docs/ACCESSIBILITY.md](docs/ACCESSIBILITY.md): accessibility rules and how they are tested
-- [docs/CONTENT_GUIDELINES.md](docs/CONTENT_GUIDELINES.md): who writes medical content, sources, page structure and style
-- [docs/ROADMAP.md](docs/ROADMAP.md): phased delivery plan and each phase's "done" criteria
-- [.claude/skills/build-phase/SKILL.md](.claude/skills/build-phase/SKILL.md): step-by-step process for building one roadmap phase
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): stack, folder layout, database schema, adapters and privacy
+- [docs/ROADMAP.md](docs/ROADMAP.md): phases, their gates and current status
+- [.claude/skills/build-phase/SKILL.md](.claude/skills/build-phase/SKILL.md): step-by-step process for building one phase
+
+## Commands
+
+- `npm run dev`: start the site at http://localhost:3000
+- `npm run check`: typecheck, lint, format check, unit tests and build
+- `npm run test:e2e`: browser and accessibility tests
