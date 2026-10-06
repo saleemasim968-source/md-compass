@@ -1,0 +1,2 @@
+# MD Compass
+@AGENTS.md
