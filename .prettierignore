@@ -1,0 +1,10 @@
+.next
+out
+build
+coverage
+playwright-report
+test-results
+package-lock.json
+next-env.d.ts
+# Project documents are hand-written; don't reformat them.
+*.md

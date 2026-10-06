@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+/*
+ * Colour tokens. All text/background pairs meet WCAG 2.2 AA (4.5:1 or better).
+ * ink on paper ≈ 16:1, muted on paper ≈ 7:1, accent on paper ≈ 7:1.
+ */
+@theme {
+  --color-paper: #ffffff;
+  --color-ink: #1a1f29;
+  --color-muted: #4a5466;
+  --color-accent: #0b5cad;
+  --color-line: #c9d1dc;
+  --color-notice: #fff7e0;
+  --color-notice-line: #8a6100;
+}
+
+@layer base {
+  html {
+    /* Respect the user's browser font size; everything else scales in rem. */
+    font-size: 100%;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    line-height: 1.6;
+  }
+
+  /* A strong, visible focus ring for keyboard users on every focusable element. */
+  :focus-visible {
+    outline: 3px solid var(--color-accent);
+    outline-offset: 3px;
+  }
+
+  a {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
