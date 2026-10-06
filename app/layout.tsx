@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
+import { MainNav } from "@/components/MainNav";
 import { SkipLink } from "@/components/SkipLink";
 import "./globals.css";
 
@@ -26,10 +27,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <SkipLink />
 
         <header className="border-b border-line">
-          <div className="mx-auto max-w-3xl px-4 py-4">
+          <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-4">
             <Link href="/" className="text-xl font-bold text-ink no-underline">
               MD Compass
             </Link>
+            <MainNav />
           </div>
         </header>
 
